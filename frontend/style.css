@@ -1,0 +1,354 @@
+:root {
+  --bg: #16130f;
+  --panel: #221d17;
+  --panel-hover: #2b241c;
+  --accent: #e8a33d;
+  --accent-dim: #7a5a26;
+  --text: #f2ede3;
+  --muted: #948a79;
+  --border: #382f24;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  background-image: radial-gradient(ellipse at top, rgba(232, 163, 61, 0.06), transparent 60%);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.topbar {
+  padding: 32px 24px 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar h1 {
+  font-family: 'Space Grotesk', monospace;
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  margin: 0 0 6px;
+}
+
+.hint { color: var(--muted); font-size: 0.85rem; margin: 0; }
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.upload-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.file-label {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.file-label:hover {
+  border-color: var(--accent-dim);
+  color: var(--text);
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #16130f;
+  font-family: 'Space Grotesk', monospace;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+button:hover { opacity: 0.9; }
+button:active { transform: scale(0.97); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+#upload-status { color: var(--muted); font-size: 0.85rem; }
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--accent-dim);
+  transform: translateY(-2px);
+}
+
+.card-image-wrap {
+  position: relative;
+  cursor: pointer;
+}
+
+.card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  background: #0f0d0a;
+}
+
+.card-image-wrap::after {
+  content: '⤢';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(22, 19, 15, 0.75);
+  color: var(--text);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.card-image-wrap:hover::after { opacity: 1; }
+
+.card-info {
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-info span {
+  font-size: 0.8rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-btn {
+  background: transparent;
+  color: #d9694f;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.delete-btn:hover { opacity: 0.75; }
+
+.empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 48px 20px;
+  grid-column: 1 / -1;
+  font-size: 0.9rem;
+}
+
+/* --- Lightbox --- */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 8, 6, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+  animation: fade-in 0.15s ease;
+}
+
+.lightbox.hidden { display: none; }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.format-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.format-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.format-btn:hover { border-color: var(--accent-dim); color: var(--text); }
+
+.format-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #16130f;
+}
+
+.lightbox-frame {
+  max-width: min(90vw, 900px);
+  max-height: 75vh;
+  border: 1px solid var(--border);
+  background: #0f0d0a;
+  padding: 6px;
+  overflow: hidden;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-frame img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transform-origin: center center;
+  will-change: transform;
+  user-select: none;
+}
+
+.lightbox-frame.fixed-ratio img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.zoom-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+.zoom-toolbar button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Space Grotesk', monospace;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+
+.zoom-reset { font-size: 0.9rem; }
+
+#zoom-level {
+  min-width: 48px;
+  text-align: center;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.native-note {
+  display: none;
+  color: var(--accent);
+  font-size: 0.75rem;
+  text-align: center;
+  max-width: min(80vw, 420px);
+  margin: 8px 0 0;
+}
+
+.lightbox-caption {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 12px;
+  font-family: 'Space Grotesk', monospace;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lightbox-close:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Film-sprocket decorative strip, ties the lightbox to the photography theme */
+.sprocket {
+  width: min(90vw, 900px);
+  height: 14px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--panel) 0 6px,
+    transparent 6px 20px
+  );
+  opacity: 0.5;
+}
+
+.sprocket-top { margin-bottom: 10px; }
+.sprocket-bottom { margin-top: 10px; }
+
+@media (max-width: 640px) {
+  .upload-box { flex-direction: column; align-items: stretch; }
+  .lightbox-close { top: 12px; right: 12px; }
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simple Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <h1>simple_gallery</h1>
+    <p class="hint">Учебный проект — практика Docker Compose (Postgres + MinIO + backend)</p>
+  </header>
+
+  <main>
+    <form id="upload-form" class="upload-box">
+      <label class="file-label" for="file-input">
+        <span id="file-label-text">Выбрать изображение</span>
+      </label>
+      <input type="file" id="file-input" accept="image/*" required hidden />
+      <button type="submit">Загрузить</button>
+      <span id="upload-status"></span>
+    </form>
+
+    <div id="gallery" class="gallery"></div>
+  </main>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox hidden">
+    <div class="sprocket sprocket-top"></div>
+    <button id="lightbox-close" class="lightbox-close" aria-label="Закрыть">×</button>
+
+    <div class="format-toolbar" role="group" aria-label="Формат кадра">
+      <button class="format-btn active" data-ratio="auto" type="button">Авто</button>
+      <button class="format-btn" data-ratio="1/1" type="button">1:1</button>
+      <button class="format-btn" data-ratio="4/5" type="button">4:5</button>
+      <button class="format-btn" data-ratio="16/9" type="button">16:9</button>
+      <button class="format-btn" data-ratio="9/16" type="button">9:16</button>
+    </div>
+
+    <div class="lightbox-frame">
+      <img id="lightbox-img" src="" alt="" draggable="false" />
+    </div>
+
+    <div class="zoom-toolbar">
+      <button id="zoom-out" aria-label="Уменьшить" type="button">−</button>
+      <span id="zoom-level">100%</span>
+      <button id="zoom-in" aria-label="Увеличить" type="button">+</button>
+      <button id="zoom-reset" class="zoom-reset" aria-label="Сбросить масштаб" type="button">⟲</button>
+      <button id="rotate-btn" aria-label="Повернуть на 90°" type="button">⟳</button>
+    </div>
+    <p id="native-note" class="native-note">Предел резкости — дальше только интерполяция, реальных пикселей в файле больше нет</p>
+
+    <p id="lightbox-caption" class="lightbox-caption"></p>
+    <div class="sprocket sprocket-bottom"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
