@@ -11,6 +11,10 @@ jobs:
       # Build compose
       - name: build my containers
         run: docker compose build
+      - name: copy .env
+        run: cp .env.example .env
+
+
       # Run container
       - name: Run container
         run: docker compose up -d
@@ -18,7 +22,7 @@ jobs:
       - name: wait for backend
         run: |
           for i in $(seq 1 30); do
-          if curl -f http://localhost:8000/health; then
+          if curl -f http://localhost:4000/health; then
           echo "backend ready"
             exit 0
           fi
@@ -30,4 +34,8 @@ jobs:
 
       # TESTING
       - name: testing backend
-        run: docker compose exec -T backend python test_api.py
+        run: docker compose exec -T backend python test_api.py | tee test-report.txt
+      - uses: actions/upload-arcifact@v4
+        with:
+          name: report
+          path: test-report.txt
