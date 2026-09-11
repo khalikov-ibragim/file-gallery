@@ -39,7 +39,7 @@ jobs:
         run: python3 backend/test_api.py > test_api.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: report
+          name: raport
           path: test-api.txt
       # Login to  docker hub
       - name: Login to dockerhub
