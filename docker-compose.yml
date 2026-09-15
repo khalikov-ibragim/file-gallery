@@ -50,7 +50,7 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
   minio:
-    image: docker.io/quay.io/minio/minio
+    image: quay.io/minio/minio
     container_name: minio
     restart: always
     ports:
