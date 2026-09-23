@@ -3,6 +3,28 @@ on:
   push:
     branches: [main]
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy my repository
+        uses: actions/checkout@v4
+
+      - name: install linters
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yamllint shellcheck
+          wget -qO /tmp/hadolint https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64
+          sudo mv /tmp/hadolint /usr/local/bin/hadolint
+          sudo chmod +x /usr/local/bin/hadolint
+
+      - name: lint compose
+        run: yamllint -d relaxed docker-compose*.y*ml
+
+      - name: lint dockerfiles
+        run: find . -iname "Dockerfile*" -not -path "./node_modules/*" -print0 | xargs -0 -I{} hadolint {}
+
+      - name: lint shell scripts
+        run: find . -name "*.sh" -print0 | xargs -0 -I{} shellcheck -P ../../ {}
   workflow:
     runs-on: ubuntu-latest
     steps:
