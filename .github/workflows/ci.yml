@@ -77,8 +77,8 @@ jobs:
           docker push glimpl/file-gallery-backend:latest
       - name: build and push frontend
         run: |
-          docker tag file-gallery-backend glimpl/file-gallery-backend:latest
-          docker push glimpl/file-gallery-backend:latest
+          docker tag file-gallery-frontend glimpl/file-gallery-frontend:latest
+          docker push glimpl/file-gallery-frontend:latest
   deploy:
     runs-on: self-hosted
     needs: [workflow]
