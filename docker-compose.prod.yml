@@ -47,7 +47,7 @@ services:
       - postgres:/var/lib/postgresql/data
       - ./backend/init_db.sql:/docker-entrypoint-initdb.d/init.sql:ro,z
   minio:
-    image: glimpl/minio:RELEASE.2025-09-07T16-13-09Z
+    image: docker.io/glimpl/minio:RELEASE.2025-09-07T16-13-09Z
     restart: always
     ports:
       - "9000:9000"
