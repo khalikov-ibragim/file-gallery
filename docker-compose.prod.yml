@@ -1,14 +1,14 @@
 ---
 services:
   frontend:
-    image: glimpl/file-gallery-frontend:${TAG:-latest}
+    image: docker.io/glimpl/file-gallery-frontend:${TAG:-latest}
     ports:
       - "8080:80"
     restart: always
     depends_on:
       - backend
   backend:
-    image: glimpl/file-gallery-backend:${TAG:-latest}
+    image: docker.io/glimpl/file-gallery-backend:${TAG:-latest}
     ports:
       - "4000:4000"
     environment:
