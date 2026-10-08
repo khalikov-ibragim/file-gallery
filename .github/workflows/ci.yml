@@ -75,10 +75,15 @@ jobs:
         run: |
           docker tag file-gallery-backend glimpl/file-gallery-backend:latest
           docker push glimpl/file-gallery-backend:latest
+          docker tag glimpl/file-gallery-backend:latest glimpl/file-gallery-backend:${GITHUB_SHA::7}    
+          docker push glimpl/file-gallery-backend:${GITHUB_SHA::7}
       - name: build and push frontend
         run: |
           docker tag file-gallery-frontend glimpl/file-gallery-frontend:latest
           docker push glimpl/file-gallery-frontend:latest
+          docker tag glimpl/file-gallery-frontend:latest glimpl/file-gallery-frontend:${GITHUB_SHA::7}  
+          docker push glimpl/file-gallery-frontend:${GITHUB_SHA::7}
+
   deploy:
     runs-on: self-hosted
     needs: [workflow]
