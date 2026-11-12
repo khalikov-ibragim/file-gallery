@@ -1,33 +1,63 @@
 # File Gallery
 
-Простая галерея изображений: пользователь загружает картинку через форму, она
-появляется в общей сетке, можно удалить своё изображение. Учебный MVP без
-авторизации.
+Галерея изображений с загрузкой файлов в S3-совместимое хранилище. Пользователь загружает изображение через форму, оно отображается в общей сетке с возможностью удаления.
+
+Проект поддерживает запуск через **Docker/Podman Compose** для локальной разработки, а также развёртывание в **Kubernetes (k3s)** с использованием собственного **Helm-чарта** из директории `chart/`.
 
 ## Стек
 
 - **Backend:** Node.js, Express (REST API)
 - **PostgreSQL:** метаданные файлов (имя, размер, дата)
-- **MinIO:** S3-совместимое хранилище самих файлов (аналог AWS S3 / GCS)
-- **Frontend:** чистые HTML/CSS/JS, раздаётся nginx
-- **Контейнеризация:** Podman / Docker Compose
+- **MinIO:** S3-совместимое хранилище файлов
+- **Frontend:** HTML/CSS/JS, Nginx
+- **Оркестрация:** Kubernetes (k3s), Helm, Docker Compose, Podman Compose
+- **CI/CD:** GitHub Actions
 
 ## Состав сервисов
 
-| Сервис  | Порт снаружи        | Зависит от | Том   |
-|---------|---------------------|------------|-------|
-| frontend| `8080`              | backend    | —     |
-| backend | `4000`              | Postgres + MinIO (healthy) | — |
-| Postgres| —                   | —          | `postgres` |
-| MinIO   | `9000` (API), `9001` (консоль) | — | `minio` |
-| pgAdmin | `6789`              | Postgres   | `pgadmin` |
+| Сервис    | Порт снаружи                | Зависит от           | Том      |
+|-----------|-----------------------------|----------------------|----------|
+| frontend  | `8080`                      | backend              | —        |
+| backend   | `4000`                      | Postgres + MinIO     | —        |
+| Postgres  | —                           | —                    | `postgres` |
+| MinIO     | `9000` (API), `9001` (консоль) | —                    | `minio`   |
+| pgAdmin   | `6789`                      | Postgres             | `pgadmin`|
 
-## Быстрый старт
+## Развёртывание
+
+### Docker/Podman Compose (локально)
 
 ```bash
 cp .env.example .env     # заполни значения
-podman-compose up -d
+podman-compose up -d     # или docker compose up -d
 ```
+
+### Kubernetes (Helm)
+
+В репозитории есть готовый Helm-чарт для развёртывания в кластере:
+
+```text
+chart/
+├── Chart.yaml
+├── values.yaml
+├── values-secrets.yaml
+└── templates/
+    ├── deployment.yaml
+    ├── service.yaml
+    ├── ingress.yaml
+    ├── hpa.yaml
+    ├── secret.yaml
+    ├── namespace.yaml
+    └── _helpers.tpl
+```
+
+Установка:
+
+```bash
+helm upgrade --install file-gallery ./chart -n file-gallery --create-namespace -f chart/values.yaml -f chart/values-secrets.yaml
+```
+
+Чарт использует шаблоны с параметризацией через `values.yaml`, содержит `HorizontalPodAutoscaler`, `Ingress`, `ConfigMap/Secret`, а также хелперы в `_helpers.tpl`.
 
 Затем:
 
