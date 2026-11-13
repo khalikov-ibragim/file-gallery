@@ -1,0 +1,32 @@
+🎉 {{ .Chart.Name }} успешно установлен!
+
+📦 Релиз: {{ .Release.Name }}
+🏷  Версия чарта: {{ .Chart.Version }}
+{{- if .Chart.AppVersion }}
+🚀 Версия приложения: {{ .Chart.AppVersion }}
+{{- end }}
+
+🌐 Доступ к приложению:
+  kubectl get svc -n {{ .Release.Namespace }}
+  kubectl port-forward svc/{{ include "file-gallery.fullname" . }}-frontend 8080:80 -n {{ .Release.Namespace }}
+  Открой: http://localhost:8080
+
+🗄️ Консоль MinIO:
+  kubectl port-forward svc/{{ include "file-gallery.fullname" . }}-minio 9001:9001 -n {{ .Release.Namespace }}
+  Открой: http://localhost:9001
+{{- with ((.Values.minio | default dict).auth) }}
+  Логин: {{ .rootUser }} / {{ .rootPassword }}
+{{- end }}
+
+🖼  Картинки в галерее:
+  MINIO_PUBLIC_URL={{ ((.Values.backend | default dict).auth).minioPublicUrl | default "http://localhost:9000" }}
+  Если это localhost:9000 — прокинь порт, иначе браузер не покажет изображения:
+  kubectl port-forward svc/{{ include "file-gallery.fullname" . }}-minio 9000:9000 -n {{ .Release.Namespace }}
+
+📊 Логи backend:
+  kubectl logs -l app.kubernetes.io/component=backend -n {{ .Release.Namespace }} -f
+
+🔧 Полезные команды:
+  helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  helm get values {{ .Release.Name }} -n {{ .Release.Namespace }}
+  helm rollback {{ .Release.Name }} 1 -n {{ .Release.Namespace }}

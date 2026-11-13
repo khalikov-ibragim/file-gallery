@@ -1,0 +1,33 @@
+{{- $fullName := include "file-gallery.fullname" . -}}
+{{- range .Values.deployments }}
+{{- if .service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-{{ .name }}
+  labels:
+    {{- include "file-gallery.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ .name }}
+spec:
+  type: {{ .service.type | default "ClusterIP" }}
+  selector:
+    app.kubernetes.io/name: {{ include "file-gallery.name" $ }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/component: {{ .name }}
+  ports:
+    {{- if .ports }}
+    {{- range .ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort | default .port }}
+      protocol: TCP
+    {{- end }}
+    {{- else if or .service.port .port }}
+    - name: http
+      port: {{ .service.port | default .port }}
+      targetPort: {{ .service.targetPort | default .port }}
+      protocol: TCP
+    {{- end }}
+{{- end }}
+{{- end }}

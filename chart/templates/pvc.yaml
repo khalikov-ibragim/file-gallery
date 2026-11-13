@@ -1,0 +1,22 @@
+{{- $fullName := include "file-gallery.fullname" . -}}
+{{- range .Values.deployments }}
+{{- if and .persistence .persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fullName }}-{{ .name }}
+  labels:
+    {{- include "file-gallery.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ .name }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .persistence.storageClassName }}
+  storageClassName: {{ .persistence.storageClassName }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .persistence.size | default "1Gi" }}
+{{- end }}
+{{- end }}
