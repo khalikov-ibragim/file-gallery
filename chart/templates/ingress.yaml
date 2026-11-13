@@ -1,0 +1,33 @@
+{{- if and .Values.ingress .Values.ingress.enabled }}
+{{- $fullName := include "file-gallery.fullname" . -}}
+{{- $svc := .Values.ingress.service | default "frontend" -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "file-gallery.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.path | default "/" }}
+            pathType: {{ .Values.ingress.pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ $fullName }}-{{ $svc }}
+                port:
+                  number: {{ .Values.ingress.port | default 80 }}
+{{- end }}

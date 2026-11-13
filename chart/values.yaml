@@ -1,0 +1,119 @@
+namespace: file-gallery
+
+# Ingress выключен по умолчанию: в кластере нет ingress-контроллера.
+# Включить: ingress.enabled=true, host=<домен>, className=<класс контроллера>.
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: file-gallery.local
+  path: /
+  pathType: Prefix
+  service: frontend
+  port: 80
+  tls: []
+
+deployments:
+  - name: backend
+    replicas: 2
+    image:
+      repository: glimpl/file-gallery-backend
+      tag: latest
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+    port: 4000
+    service:
+      type: ClusterIP
+      enabled: true
+      port: 4000
+      targetPort: 4000
+    envFromSecret: true
+    resources:
+      requests: {memory: "256Mi", cpu: "250m"}
+      limits: {memory: "512Mi", cpu: "500m"}
+
+  - name: frontend
+    replicas: 1
+    image:
+      repository: glimpl/file-gallery-frontend
+      tag: latest
+    port: 80
+    service:
+      type: NodePort
+      enabled: true
+      port: 80
+      targetPort: 80
+    # Монтируем свой конфиг nginx: в образе frontend лежит битый default.cof
+    # (опечатка в Dockerfile), поэтому /api не проксировался на backend.
+    nginxConfig: true
+    resources:
+      requests: {memory: "64Mi", cpu: "65m"}
+      limits: {memory: "128Mi", cpu: "130m"}
+
+  - name: bd
+    replicas: 1
+    image:
+      repository: postgres
+      tag: 16-alpine
+    port: 5432
+    service:
+      type: ClusterIP
+      enabled: true
+      port: 5432
+      targetPort: 5432
+    envFromSecret: true
+    persistence:
+      enabled: true
+      size: 1Gi
+      mountPath: /var/lib/postgresql/data
+    resources:
+      requests: {memory: "256Mi", cpu: "250m"}
+      limits: {memory: "512Mi", cpu: "500m"}
+
+  - name: pgadmin
+    replicas: 1
+    image:
+      repository: dpage/pgadmin4
+      tag: latest
+    port: 80
+    service:
+      type: NodePort
+      enabled: true
+      port: 6789
+      targetPort: 80
+    envFromSecret: true
+    persistence:
+      enabled: true
+      size: 1Gi
+      mountPath: /var/lib/pgadmin
+    resources:
+      requests: {memory: "128Mi", cpu: "125m"}
+      limits: {memory: "256Mi", cpu: "250m"}
+
+  - name: minio
+    replicas: 1
+    image:
+      repository: glimpl/minio
+      tag: RELEASE.2025-09-07T16-13-09Z
+    ports:
+      - name: api
+        port: 9000
+        targetPort: 9000
+      - name: console
+        port: 9001
+        targetPort: 9001
+    args: ["server", "/data", "--console-address", ":9001"]
+    service:
+      type: ClusterIP
+      enabled: true
+    envFromSecret: true
+    persistence:
+      enabled: true
+      size: 2Gi
+      mountPath: /data
+    resources:
+      requests: {memory: "256Mi", cpu: "250m"}
+      limits: {memory: "512Mi", cpu: "500m"}
