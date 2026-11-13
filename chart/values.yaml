@@ -1,18 +1,5 @@
 namespace: file-gallery
 
-# Ingress выключен по умолчанию: в кластере нет ingress-контроллера.
-# Включить: ingress.enabled=true, host=<домен>, className=<класс контроллера>.
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  host: file-gallery.local
-  path: /
-  pathType: Prefix
-  service: frontend
-  port: 80
-  tls: []
-
 deployments:
   - name: backend
     replicas: 2
@@ -46,9 +33,6 @@ deployments:
       enabled: true
       port: 80
       targetPort: 80
-    # Монтируем свой конфиг nginx: в образе frontend лежит битый default.cof
-    # (опечатка в Dockerfile), поэтому /api не проксировался на backend.
-    nginxConfig: true
     resources:
       requests: {memory: "64Mi", cpu: "65m"}
       limits: {memory: "128Mi", cpu: "130m"}
@@ -85,10 +69,6 @@ deployments:
       port: 6789
       targetPort: 80
     envFromSecret: true
-    persistence:
-      enabled: true
-      size: 1Gi
-      mountPath: /var/lib/pgadmin
     resources:
       requests: {memory: "128Mi", cpu: "125m"}
       limits: {memory: "256Mi", cpu: "250m"}

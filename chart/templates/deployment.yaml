@@ -21,11 +21,6 @@ spec:
         app.kubernetes.io/name: {{ include "file-gallery.name" $ }}
         app.kubernetes.io/instance: {{ $.Release.Name }}
         app.kubernetes.io/component: {{ .name }}
-      annotations:
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") $ | sha256sum }}
-        {{- if .nginxConfig }}
-        checksum/nginx-config: {{ include (print $.Template.BasePath "/frontend-nginx-config.yaml") $ | sha256sum }}
-        {{- end }}
     spec:
       containers:
         - name: {{ .name }}
@@ -59,29 +54,15 @@ spec:
           resources:
             {{- toYaml .resources | nindent 12 }}
           {{- end }}
-          {{- if or (and .persistence .persistence.enabled) .nginxConfig }}
+          {{- if and .persistence .persistence.enabled }}
           volumeMounts:
-            {{- if and .persistence .persistence.enabled }}
             - name: data
               mountPath: {{ .persistence.mountPath }}
-            {{- end }}
-            {{- if .nginxConfig }}
-            - name: nginx-config
-              mountPath: /etc/nginx/conf.d/default.conf
-              subPath: default.conf
-            {{- end }}
           {{- end }}
-      {{- if or (and .persistence .persistence.enabled) .nginxConfig }}
+      {{- if and .persistence .persistence.enabled }}
       volumes:
-        {{- if and .persistence .persistence.enabled }}
         - name: data
           persistentVolumeClaim:
             claimName: {{ $fullName }}-{{ .name }}
-        {{- end }}
-        {{- if .nginxConfig }}
-        - name: nginx-config
-          configMap:
-            name: {{ $fullName }}-frontend-nginx
-        {{- end }}
       {{- end }}
 {{- end }}
