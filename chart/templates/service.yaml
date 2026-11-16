@@ -21,6 +21,9 @@ spec:
     - name: {{ .name }}
       port: {{ .port }}
       targetPort: {{ .targetPort | default .port }}
+      {{- if .nodePort }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
       protocol: TCP
     {{- end }}
     {{- else if or .service.port .port }}

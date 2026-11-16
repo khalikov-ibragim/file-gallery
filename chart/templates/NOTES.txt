@@ -9,11 +9,11 @@
 🌐 Доступ к приложению:
   kubectl get svc -n {{ .Release.Namespace }}
   kubectl port-forward svc/{{ include "file-gallery.fullname" . }}-frontend 8080:80 -n {{ .Release.Namespace }}
-  Открой: http://localhost:8080
+  Открой: http://file-gallery-frontend:8080
 
 🗄️ Консоль MinIO:
   kubectl port-forward svc/{{ include "file-gallery.fullname" . }}-minio 9001:9001 -n {{ .Release.Namespace }}
-  Открой: http://localhost:9001
+  Открой: http://10.81.6.183:30901
 
 📊 Логи backend:
   kubectl logs -l app.kubernetes.io/component=backend -n {{ .Release.Namespace }} -f

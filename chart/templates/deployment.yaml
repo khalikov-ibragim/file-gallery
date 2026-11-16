@@ -45,6 +45,13 @@ spec:
               containerPort: {{ .service.targetPort | default .port }}
               protocol: TCP
             {{- end }}
+          {{- if .env}}
+          env:
+            {{- range $k, $v := .env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- end }}
           {{- if .envFromSecret }}
           envFrom:
             - secretRef:

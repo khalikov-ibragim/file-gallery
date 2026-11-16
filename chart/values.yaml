@@ -28,6 +28,8 @@ deployments:
       repository: glimpl/file-gallery-frontend
       tag: latest
     port: 80
+    env:
+      BACKEND_HOST: file-gallery-backend
     service:
       type: NodePort
       enabled: true
@@ -82,12 +84,14 @@ deployments:
       - name: api
         port: 9000
         targetPort: 9000
+        nodePort: 30900
       - name: console
         port: 9001
         targetPort: 9001
+        nodePort: 30901
     args: ["server", "/data", "--console-address", ":9001"]
     service:
-      type: ClusterIP
+      type: NodePort
       enabled: true
     envFromSecret: true
     persistence:
