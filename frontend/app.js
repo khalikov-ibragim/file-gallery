@@ -1,5 +1,5 @@
 // Override via window.GALLERY_API_URL if needed (e.g. injected config.js in docker setup)
-const API_URL = window.GALLERY_API_URL || 'http://localhost:4000';
+const API_URL = window.GALLERY_API_URL  ?? '';
 
 const form = document.getElementById('upload-form');
 const fileInput = document.getElementById('file-input');
