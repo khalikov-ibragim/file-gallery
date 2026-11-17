@@ -2,7 +2,7 @@
 services:
   file-gallery-frontend:
     build: ./frontend
-    image: file-gallery-frontend
+    image: glimpl/file-gallery-frontend:latest
     ports:
       - "8080:80"
     restart: always
@@ -10,7 +10,7 @@ services:
       - file-gallery-backend
   file-gallery-backend:
     build: ./backend
-    image: file-gallery-backend
+    image: glimpl/file-gallery-backend:latest
     ports:
       - "4000:4000"
     environment:
