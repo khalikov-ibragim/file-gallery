@@ -23,7 +23,7 @@ const upload = multer({
 
 // --- Postgres (stores file metadata) ---
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || 'file-gallery-bd',
   port: Number(process.env.DB_PORT) || 5432,
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
@@ -48,7 +48,7 @@ async function initDb() {
 const BUCKET = process.env.MINIO_BUCKET || 'gallery';
 
 const s3 = new S3Client({
-  endpoint: `http://${process.env.MINIO_HOST || 'localhost'}:${process.env.MINIO_PORT || 9000}`,
+  endpoint: `http://${process.env.MINIO_HOST || 'file-gallery-minio'}:${process.env.MINIO_PORT || 9000}`,
   region: 'us-east-1', // required by SDK, MinIO ignores it
   credentials: {
     accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
@@ -94,7 +94,7 @@ async function initBucket() {
 // how the *backend container* reaches MinIO over the internal docker network.
 // The browser instead needs MinIO's port published to the host.
 function publicFileUrl(objectKey) {
-  const base = process.env.MINIO_PUBLIC_URL || 'http://localhost:9000';
+  const base = process.env.MINIO_PUBLIC_URL ??  '';
   return `${base}/${BUCKET}/${objectKey}`;
 }
 
