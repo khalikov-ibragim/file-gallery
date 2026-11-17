@@ -2,6 +2,7 @@
 services:
   file-gallery-frontend:
     build: ./frontend
+    image: file-gallery-frontend
     ports:
       - "8080:80"
     restart: always
@@ -9,6 +10,7 @@ services:
       - file-gallery-backend
   file-gallery-backend:
     build: ./backend
+    image: file-gallery-backend
     ports:
       - "4000:4000"
     environment:
