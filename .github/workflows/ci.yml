@@ -26,6 +26,7 @@ jobs:
       - name: lint shell scripts
         run: find . -name "*.sh" -print0 | xargs -0 -I{} shellcheck -P ../../ {}
   workflow:
+    needs: [lint]
     runs-on: ubuntu-latest
     steps:
       - name: Copy my repository
@@ -61,8 +62,8 @@ jobs:
         run: python3 backend/test_api.py > test_api.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: raport
-          path: test-api.txt
+          name: report
+          path: test_api.txt
       # Login to  docker hub
       - name: Login to dockerhub
         uses: docker/login-action@v3

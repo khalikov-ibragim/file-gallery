@@ -1,13 +1,13 @@
 ---
 services:
-  frontend:
+  file-gallery-frontend:
     build: ./frontend
     ports:
       - "8080:80"
     restart: always
     depends_on:
-      - backend
-  backend:
+      - file-gallery-backend
+  file-gallery-backend:
     build: ./backend
     ports:
       - "4000:4000"
@@ -30,7 +30,7 @@ services:
       minio:
         condition: service_healthy
 
-  bd:
+  file-gallery-bd:
     image: docker.io/postgres:16-alpine
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -45,7 +45,7 @@ services:
       start_period: 30s
     volumes:
       - postgres:/var/lib/postgresql/data
-  minio:
+  file-gallery-minio:
     image: glimpl/minio:RELEASE.2025-09-07T16-13-09Z
     restart: always
     ports:

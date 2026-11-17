@@ -15,6 +15,13 @@ spec:
       app.kubernetes.io/name: {{ include "file-gallery.name" $ }}
       app.kubernetes.io/instance: {{ $.Release.Name }}
       app.kubernetes.io/component: {{ .name }}
+    {{- if .strategy }}
+  strategy:
+    type: {{.strategy.type}}
+    rollingUpdate:
+      maxUnavailable: {{.strategy.rollingUpdate.maxUnavailable}}
+      maxSurge: {{.strategy.rollingUpdate.maxSurge}}
+    {{- end }}
   template:
     metadata:
       labels:
@@ -25,6 +32,22 @@ spec:
       containers:
         - name: {{ .name }}
           image: "{{ .image.repository }}:{{ .image.tag }}"
+          {{- if .readinnessProbe}}
+          readinessProbe:
+            httpGet:
+              path: {{.strategy.readinessProbe.httpGet.path}}
+              port: {{.strategy.readinessProbe.httpGet.port}}
+            initialDelaySeconds: {{.strategy.readinessProbe.initialDelaySeconds}}
+            periodSeconds: {{.strategy.readinessProbe.periodSeconds}}
+            {{- end }}
+            {{- if .readinnessProbe}}
+          livenessProbe:
+            httpGet:
+              path: {{ .strategy.livenessProbe.httpGet.path }}
+              port: {{ .strategy.livenessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .strategy.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .strategy.livenessProbe.periodSeconds }}
+          {{- end }}
           {{- if .command }}
           command:
             {{- toYaml .command | nindent 12 }}
