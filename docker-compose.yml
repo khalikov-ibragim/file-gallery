@@ -25,9 +25,9 @@ services:
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
     restart: always
     depends_on:
-      bd:
+      file-gallery-bd:
         condition: service_healthy
-      minio:
+      file-gallery-minio:
         condition: service_healthy
 
   file-gallery-bd:
@@ -72,7 +72,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     restart: always
     depends_on:
-      bd:
+      file-gallery-bd:
         condition: service_healthy
     volumes:
       - pgadmin:/var/lib/pgadmin
