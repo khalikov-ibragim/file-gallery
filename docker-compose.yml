@@ -74,7 +74,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     restart: always
     depends_on:
-      file-gallery-bd:
+      bd:
         condition: service_healthy
     volumes:
       - pgadmin:/var/lib/pgadmin
