@@ -75,13 +75,13 @@ jobs:
     # Отправка моих сервисов на dockerhub
       - name: build and push backend
         run: |
-          docker compose build file-gallery-backend
+          docker compose build backend
           docker push glimpl/file-gallery-backend:latest
           docker tag glimpl/file-gallery-backend:latest glimpl/file-gallery-backend:${GITHUB_SHA::7}    
           docker push glimpl/file-gallery-backend:${GITHUB_SHA::7}
       - name: build and push frontend
         run: |
-          docker compose build file-gallery-frontend
+          docker compose build frontend
           docker push glimpl/file-gallery-frontend:latest
           docker tag glimpl/file-gallery-frontend:latest glimpl/file-gallery-frontend:${GITHUB_SHA::7}  
           docker push glimpl/file-gallery-frontend:${GITHUB_SHA::7}
