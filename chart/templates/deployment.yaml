@@ -32,21 +32,21 @@ spec:
       containers:
         - name: {{ .name }}
           image: "{{ .image.repository }}:{{ .image.tag }}"
-          {{- if .readinnessProbe}}
+        {{- if .readinessProbe}}
           readinessProbe:
             httpGet:
-              path: {{.strategy.readinessProbe.httpGet.path}}
-              port: {{.strategy.readinessProbe.httpGet.port}}
-            initialDelaySeconds: {{.strategy.readinessProbe.initialDelaySeconds}}
-            periodSeconds: {{.strategy.readinessProbe.periodSeconds}}
-            {{- end }}
-            {{- if .readinnessProbe}}
+              path: {{.readinessProbe.httpGet.path}}
+              port: {{.readinessProbe.httpGet.port}}
+            initialDelaySeconds: {{.readinessProbe.initialDelaySeconds}}
+            periodSeconds: {{.readinessProbe.periodSeconds}}
+          {{- end }}
+            {{- if .livenessProbe}}
           livenessProbe:
             httpGet:
-              path: {{ .strategy.livenessProbe.httpGet.path }}
-              port: {{ .strategy.livenessProbe.httpGet.port }}
-            initialDelaySeconds: {{ .strategy.livenessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .strategy.livenessProbe.periodSeconds }}
+              path: {{ .livenessProbe.httpGet.path }}
+              port: {{ .livenessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .livenessProbe.periodSeconds }}
           {{- end }}
           {{- if .command }}
           command:
@@ -84,15 +84,28 @@ spec:
           resources:
             {{- toYaml .resources | nindent 12 }}
           {{- end }}
-          {{- if and .persistence .persistence.enabled }}
+
+          {{- if or .persistence .extraVolumeMounts }}
           volumeMounts:
+            {{- if and .persistence .persistence.enabled}}
             - name: data
               mountPath: {{ .persistence.mountPath }}
           {{- end }}
-      {{- if and .persistence .persistence.enabled }}
+          {{- with  .extraVolumeMounts }}
+          {{- toYaml . | nindent 12}}
+          {{- end}}
+          {{- end }}
+      {{- if or .persistence .extraVolumeMounts }}
       volumes:
+      {{- if and .persistence .persistence.enabled }}
         - name: data
           persistentVolumeClaim:
             claimName: {{ $fullName }}-{{ .name }}
+      {{- end }}
+      {{- range  .extraVolumes }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ include "file-gallery.fullname" $ }}-nginx-config
+      {{- end}}
       {{- end }}
 {{- end }}
