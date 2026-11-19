@@ -32,10 +32,11 @@ jobs:
       - name: Copy my repository
         uses: actions/checkout@v4
       # Build compose
-      - name: build my containers
-        run: docker compose build
       - name: copy .env
         run: cp .env.example .env
+
+      - name: build my containers
+        run: docker compose build
 
 
       # Run container
