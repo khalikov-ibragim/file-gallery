@@ -87,7 +87,7 @@ jobs:
           docker push glimpl/file-gallery-frontend:${GITHUB_SHA::7}
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [workflow]
     steps:
       - name: copy repository
