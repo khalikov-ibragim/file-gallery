@@ -113,8 +113,8 @@ jobs:
         env:
           KUBECONFIG: ${{ secrets.$KUBE_CONFIG_DATA }}
         run: |
-          echo "$KUBE_CONFIG_DATA" > /tmp/kubeconfig.yaml
-          export KUBECONFIG=/tmp/kubeconfig.yaml
+          echo "$KUBECONFIG" > /tmp/kubeconfig.yaml
+          export KUBE_CONFIG_DATA=/tmp/kubeconfig.yaml
           kubectl cluster-info
 
       - name: download helm
