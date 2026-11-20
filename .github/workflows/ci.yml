@@ -124,7 +124,7 @@ jobs:
           helm upgrade --install file-gallery ./chart \
             --namespace file-gallery --create-namespace \
             -f ./chart/values.yaml -f "$RUNNER_TEMP/values-secrets.yaml"
-            set appImageTag=${{GITHUB_SHA::7}} \ 
+            set appImageTag=${GITHUB_SHA::7} \ 
             -- wait --atomic --timeout 5m
 
       - name: cleanup
