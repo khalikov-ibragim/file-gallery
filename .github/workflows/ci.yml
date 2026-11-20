@@ -16,6 +16,14 @@ jobs:
           wget -qO /tmp/hadolint https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64
           sudo mv /tmp/hadolint /usr/local/bin/hadolint
           sudo chmod +x /usr/local/bin/hadolint
+          wget -qO /tmp/kubeconform.tar.gz https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-linux-amd64.tar.gz
+          tar -xzf /tmp/kubeconform.tar.gz -C /tmp
+          sudo mv /tmp/kubeconform /usr/local/bin/kubeconform
+          sudo chmod +x /usr/local/bin/kubeconform
+      
+
+      - name: download helm
+        uses: azure/setup-helm@v4
 
       - name: lint compose
         run: yamllint -d relaxed docker-compose*.y*ml
@@ -25,8 +33,14 @@ jobs:
 
       - name: lint shell scripts
         run: find . -name "*.sh" -print0 | xargs -0 -I{} shellcheck -P ../../ {}
+
+      - name: helm lint and kubeconform
+        run: | 
+          helm lint ./chart -f ./chart/values.yaml -f ./chart/values-secrets.example.yaml
+          helm template file-gallery ./chart -f ./chart/values.yaml -f ./chart/values-secret.example.yaml
+          kubeconform -strict -summary
+
   workflow:
-    needs: [lint]
     runs-on: ubuntu-latest
     steps:
       - name: Copy my repository
@@ -90,15 +104,31 @@ jobs:
     runs-on: self-hosted
     needs: [workflow]
     steps:
-      - name: copy repository
-        uses: actions/checkout@v4
-      # Login to  docker hub
-      - name: Login to dockerhub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: pull images
-        run: docker compose pull
-      - name: start containers
-        run: docker compose up -d
+      - name: download helm
+        uses: azure/setup-helm@v4
+
+      - name: secret values
+        env:
+          HELM_SECRETS: ${{ secrets.FILE_GALLERY_HELM_SECRETS }}
+        run: |
+          umask 077
+          printf '%s\n' "$HELM_SECRETS" >  "$RUNNER_TEMP/values-secrets.yaml"
+
+      - name: helm template and kubeconform
+        run: |
+          helm template file-gallery ./chart -f ./chart/values.yaml -f "$RUNNER_TEMP/values-secrets.yaml" 
+          kubeconform -strict -summary
+
+      - name: helm upgrade
+        run: | 
+          helm upgrade --install file-gallery ./chart \
+            --namespace file-gallery --create-namespace \
+            -f ./chart/values.yaml -f "$RUNNER_TEMP/values-secrets.yaml"
+            set appImageTag=${{GITHUB_SHA::7}} \ 
+            -- wait --atomic --timeout 5m
+
+      - name: cleanup
+        if: always()
+        run: rm -f  "$RUNNER_TEMP/values-secrets.yaml"
+
+
