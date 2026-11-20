@@ -111,7 +111,7 @@ jobs:
 
       - name: connect to k3 cluster
         env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
+          KUBECONFIG: ${{ secrets.$KUBE_CONFIG_DATA }}
         run: |
           echo "$KUBE_CONFIG_DATA" > /tmp/kubeconfig.yaml
           export KUBECONFIG=/tmp/kubeconfig.yaml
@@ -142,6 +142,6 @@ jobs:
 
       - name: cleanup
         if: always()
-        run: rm -f  "$RUNNER_TEMP/values-secrets.yaml"
+        run: rm -f  "$KUBE_CONFIG_DATA/tmp/kubeconfig.yaml" "$RUNNER_TEMP/values-secrets.yaml"
 
 
