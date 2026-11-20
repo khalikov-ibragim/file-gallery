@@ -36,8 +36,8 @@ jobs:
 
       - name: helm lint and kubeconform
         run: | 
-          helm lint ./chart -f ./chart/values.yaml -f ./chart/values-secrets.example.yaml
-          helm template file-gallery ./chart -f ./chart/values.yaml -f ./chart/values-secret.example.yaml
+          helm lint ./chart -f ./chart/values.yaml 
+          helm template file-gallery ./chart -f ./chart/values.yaml 
           kubeconform -strict -summary
 
   workflow:
@@ -104,6 +104,19 @@ jobs:
     runs-on: self-hosted
     needs: [workflow]
     steps:
+      - name: install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.28.0'
+
+      - name: connect to k3 cluster
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
+        run: |
+          echo "$KUBE_CONFIG_DATA" > /tmp/kubeconfig.yaml
+          export KUBECONFIG=/tmp/kubeconfig.yaml
+          kubectl cluster-info
+
       - name: download helm
         uses: azure/setup-helm@v4
 
