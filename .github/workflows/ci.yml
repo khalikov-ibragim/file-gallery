@@ -37,8 +37,7 @@ jobs:
       - name: helm lint and kubeconform
         run: | 
           helm lint ./chart -f ./chart/values.yaml 
-          helm template file-gallery ./chart -f ./chart/values.yaml 
-          kubeconform -strict -summary
+          helm template file-gallery ./chart -f ./chart/values.yaml | kubeconform -strict -summary
 
   workflow:
     runs-on: ubuntu-latest
@@ -139,8 +138,7 @@ jobs:
 
       - name: helm template and kubeconform
         run: |
-          helm template file-gallery ./chart -f ./chart/values.yaml -f "$RUNNER_TEMP/values-secrets.yaml" 
-          kubeconform -strict -summary
+          helm template file-gallery ./chart -f ./chart/values.yaml -f "$RUNNER_TEMP/values-secrets.yaml" | kubeconform -strict -summary
 
       - name: helm upgrade
         run: | 
@@ -152,6 +150,6 @@ jobs:
 
       - name: cleanup
         if: always()
-        run: rm -f  "$KUBE_CONFIG_DATA/tmp/kubeconfig.yaml" "$RUNNER_TEMP/values-secrets.yaml"
+        run: rm -f  "/tmp/kubeconfig.yaml" "$RUNNER_TEMP/values-secrets.yaml"
 
 
