@@ -104,6 +104,9 @@ jobs:
     runs-on: self-hosted
     needs: [workflow]
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
       - name: install kubectl
         uses: azure/setup-kubectl@v4
         with:
@@ -111,10 +114,10 @@ jobs:
 
       - name: connect to k3 cluster
         env:
-          KUBECONFIG: ${{ secrets.KUBE_CONFIG_DATA }}
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
         run: |
-          echo "$KUBECONFIG" > /tmp/kubeconfig.yaml
-          export KUBE_CONFIG_DATA=/tmp/kubeconfig.yaml
+          echo "$KUBE_CONFIG_DATA" > /tmp/kubeconfig.yaml
+          export KUBECONFIG=/tmp/kubeconfig.yaml
           kubectl cluster-info
 
       - name: download helm
@@ -136,9 +139,9 @@ jobs:
         run: | 
           helm upgrade --install file-gallery ./chart \
             --namespace file-gallery --create-namespace \
-            -f ./chart/values.yaml -f "$RUNNER_TEMP/values-secrets.yaml"
-            set appImageTag=${GITHUB_SHA::7} \ 
-            -- wait --atomic --timeout 5m
+            -f ./chart/values.yaml -f "$RUNNER_TEMP/values-secrets.yaml" \
+            --set appImageTag=${GITHUB_SHA::7} \
+            --wait --rollback-on-failure --timeout 5m
 
       - name: cleanup
         if: always()
