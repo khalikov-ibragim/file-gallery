@@ -111,7 +111,7 @@ jobs:
 
       - name: connect to k3 cluster
         env:
-          KUBECONFIG: ${{ secrets.$KUBE_CONFIG_DATA }}
+          KUBECONFIG: ${{ secrets.KUBE_CONFIG_DATA }}
         run: |
           echo "$KUBECONFIG" > /tmp/kubeconfig.yaml
           export KUBE_CONFIG_DATA=/tmp/kubeconfig.yaml
