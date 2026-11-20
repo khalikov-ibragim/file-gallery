@@ -120,8 +120,13 @@ jobs:
           export KUBECONFIG=/tmp/kubeconfig.yaml
           kubectl cluster-info
 
-      - name: download helm
-        uses: azure/setup-helm@v4
+      - name: download helm and kubeconfirm
+        uses: |
+            azure/setup-helm@v4
+            wget -qO /tmp/kubeconform.tar.gz https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-linux-amd64.tar.gz
+            tar -xzf /tmp/kubeconform.tar.gz -C /tmp
+            sudo mv /tmp/kubeconform /usr/local/bin/kubeconform
+            sudo chmod +x /usr/local/bin/kubeconform
 
       - name: secret values
         env:
