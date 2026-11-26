@@ -1,102 +1,166 @@
 # File Gallery
 
-Галерея изображений с загрузкой файлов в S3-совместимое хранилище. Пользователь загружает изображение через форму, оно отображается в общей сетке с возможностью удаления.
+Небольшая галерея изображений: загрузка файлов через backend, хранение метаданных в PostgreSQL, файлов — в MinIO, фронтенд отдаётся через Nginx.
 
-Проект поддерживает запуск через **Docker/Podman Compose** для локальной разработки, а также развёртывание в **Kubernetes (k3s)** с использованием собственного **Helm-чарта** из директории `chart/`.
+Проект поддерживает два режима запуска:
+
+- **Docker/Podman Compose** — для локальной разработки и быстрой проверки.
+- **Kubernetes (k3s) + Helm** — деплой через чарт в `chart/`.
 
 ## Стек
 
-- **Backend:** Node.js, Express (REST API)
-- **PostgreSQL:** метаданные файлов (имя, размер, дата)
-- **MinIO:** S3-совместимое хранилище файлов
 - **Frontend:** HTML/CSS/JS, Nginx
-- **Оркестрация:** Kubernetes (k3s), Helm, Docker Compose, Podman Compose
+- **Backend:** Node.js, Express
+- **PostgreSQL:** метаданные файлов
+- **MinIO:** S3-совместимое хранилище файлов
+- **pgAdmin:** веб-консоль PostgreSQL (опционально)
+- **Инфраструктура:** Docker Compose, Kubernetes (k3s), Helm
 - **CI/CD:** GitHub Actions
 
-## Состав сервисов
-
-| Сервис    | Порт снаружи                | Зависит от           | Том      |
-|-----------|-----------------------------|----------------------|----------|
-| frontend  | `8080`                      | backend              | —        |
-| backend   | `4000`                      | Postgres + MinIO     | —        |
-| Postgres  | —                           | —                    | `postgres` |
-| MinIO     | `9000` (API), `9001` (консоль) | —                    | `minio`   |
-| pgAdmin   | `6789`                      | Postgres             | `pgadmin`|
-
-## Развёртывание
-
-### Docker/Podman Compose (локально)
-
-```bash
-cp .env.example .env     # заполни значения
-podman-compose up -d     # или docker compose up -d
-```
-
-### Kubernetes (Helm)
-
-В репозитории есть готовый Helm-чарт для развёртывания в кластере:
+## Структура репозитория
 
 ```text
-chart/
-├── Chart.yaml
-├── values.yaml
-├── values-secrets.yaml
-└── templates/
-    ├── deployment.yaml
-    ├── service.yaml
-    ├── ingress.yaml
-    ├── hpa.yaml
-    ├── secret.yaml
-    ├── namespace.yaml
-    └── _helpers.tpl
+.
+├── backend/                  # Node.js/Express API, Dockerfile
+├── frontend/                 # Статика + nginx.conf, Dockerfile
+├── chart/                    # Helm-чарт для k3s
+│   ├── Chart.yaml
+│   ├── values.yaml
+│   ├── values-secrets.example.yaml
+│   └── templates/
+├── .github/workflows/ci.yml  # lint + compose-тесты + push + helm deploy
+├── docker-compose.yml        # Локальный/dev запуск
+├── .env.example              # Пример env для Docker Compose
+├── PROJECT-gallery.md        # Исходное ТЗ/описание учебного проекта
+└── README.md
 ```
 
-Установка:
+## Сервисы и порты
+
+### Docker Compose (`docker-compose.yml`)
+
+| Сервис | Порт хоста | Назначение | Зависимости |
+|--------|------------|------------|-------------|
+| `frontend` | `8080:80` | Веб-интерфейс | `backend` |
+| `backend` | `4000:4000` | REST API | `bd`, `minio` |
+| `bd` | внутренний `5432` | PostgreSQL | — |
+| `minio` | `9000:9000`, `9001:9001` | S3 API / Web Console | — |
+| `pgadmin` | `8081:80` | pgAdmin | — |
+
+### Helm/k3s (`chart/values.yaml`)
+
+| Сервис | Service type | Service port | NodePort / Target |
+|--------|--------------|--------------|-------------------|
+| `backend` | NodePort | `4000` | nodePort `30050`, target `4000` |
+| `frontend` | NodePort | `80` | nodePort `30080`, target `80` |
+| `bd` | ClusterIP | `5432` | target `5432` |
+| `minio` | ClusterIP + NodePort console | `9000`, `9090` | console nodePort `30091` |
+| `pgadmin` | NodePort | `80` | nodePort `30092`, target `80` |
+
+> Точные значения смотри в `chart/values.yaml` — там же заданы probes, resources, strategy, HPA.
+
+## Быстрый старт (Docker Compose)
 
 ```bash
-helm upgrade --install file-gallery ./chart -n file-gallery --create-namespace -f chart/values.yaml -f chart/values-secrets.yaml
+# 1. Клонировать
+git clone <repo-url>
+cd file-gallery
+
+# 2. Подготовить env
+cp .env.example .env
+# Отредактируй .env при необходимости
+
+# 3. Запустить
+docker compose up -d --build
+
+# 4. Проверить
+docker compose ps
+curl http://localhost:4000/health
 ```
 
-Чарт использует шаблоны с параметризацией через `values.yaml`, содержит `HorizontalPodAutoscaler`, `Ingress`, `ConfigMap/Secret`, а также хелперы в `_helpers.tpl`.
+После запуска:
 
-Затем:
+- Frontend: `http://localhost:8080`
+- Backend: `http://localhost:4000`
+- MinIO API: `http://localhost:9000`
+- MinIO Console: `http://localhost:9001`
+- pgAdmin: `http://localhost:8081`
 
-- **Галерея:** http://localhost:8080
-- **Backend API:** http://localhost:4000 (`GET /health`)
-- **Консоль MinIO:** http://localhost:9001 (файлы внутри)
-- **pgAdmin:** http://localhost:6789
+## Переменные окружения
 
-## API backend
+### Docker Compose
 
-| Метод | Путь                | Описание                         |
-|-------|---------------------|----------------------------------|
-| GET   | `/api/files`        | список файлов                    |
-| POST  | `/api/upload`       | multipart-загрузка, поле `file`  |
-| DELETE| `/api/files/:id`    | удаление файла                   |
+Источник: `.env.example`.
 
-## Главная ловушка: MINIO_PUBLIC_URL
+| Переменная | Назначение |
+|------------|------------|
+| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Подключение backend к PostgreSQL |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Инициализация PostgreSQL |
+| `MINIO_HOST`, `MINIO_PORT` | Адрес MinIO для backend внутри docker-сети |
+| `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` | Учётные данные MinIO/S3 |
+| `MINIO_BUCKET` | Бакет для файлов |
+| `MINIO_PUBLIC_URL` | Публичный URL MinIO, который браузер использует в `<img src>` |
+| `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | Root-пользователь MinIO |
+| `PGADMIN_DEFAULT_EMAIL`, `PGADMIN_DEFAULT_PASSWORD` | Доступ к pgAdmin |
 
-Backend загружает файл в MinIO через **внутреннюю** docker-сеть (по имени `minio:9000`).
-Но браузер потом грузит картинку через `<img src>` **напрямую из MinIO** — то есть
-не из docker-сети, а с хост-машины. Поэтому:
+Важно: `MINIO_PUBLIC_URL` должен быть доступен из браузера пользователя. Для локального Compose обычно `http://localhost:9000`.
 
-- внутреннее подключение → `MINIO_HOST` / `MINIO_PORT` (например `minio:9000`)
-- публичный URL для браузера → **отдельная** `MINIO_PUBLIC_URL` (например `http://localhost:9000`)
+### Helm
 
-Если перепутать — upload пройдёт, но картинки в браузере будут «битыми» или вечно
-грузиться.
+Шаблон секретов: `chart/values-secrets.example.yaml` → локальный `chart/values-secrets.yaml`.
 
-## Известные ловушки / TODO
+Реальные секреты не коммитятся. В CI секрет передаётся через GitHub Secret `FILE_GALLERY_SECRETS` и создаётся во временном файле перед `helm upgrade`.
 
-1. **Healthcheck MinIO использует `curl`**, которого в образе `minio/minio` часто
-   нет (образ на базе UBI-micro). Если healthcheck «вечно красный» и backend не
-   стартует — используй `mc ready local` либо добавь `curl`.
-2. **Публичный бакет**: политика бакета разрешает чтение всем (`s3:GetObject`).
-   Для прода лучше presigned URL (см. ТЗ «со звёздочкой»).
-3. **Нет авторизации** на upload/delete — осознанно, учебный MVP.
-4. Порты MinIO `9000` и `9001` торчат наружу — безопаснее наружу выставить только
-   консоль.
-5. Названия контейнеров/сервисов не очень читаемые (`bd`, `back`, `front`) —
-   условность, можно переименовать.
+## Запуск в Kubernetes (Helm)
 
-Подробное техническое задание — в [`PROJECT-gallery.md`](./PROJECT-gallery.md).
+```bash
+cp chart/values-secrets.example.yaml chart/values-secrets.yaml
+# Заполни реальные значения
+
+helm upgrade --install file-gallery ./chart \
+  --namespace file-gallery --create-namespace \
+  -f ./chart/values.yaml \
+  -f ./chart/values-secrets.yaml
+```
+
+Проверки:
+
+```bash
+helm lint ./chart -f ./chart/values.yaml
+helm template file-gallery ./chart \
+  -f ./chart/values.yaml \
+  -f ./chart/values-secrets.yaml | kubeconform -strict -summary -
+kubectl get pods,svc,pvc -n file-gallery
+```
+
+## CI/CD
+
+Workflow: `.github/workflows/ci.yml`.
+
+| Job | Что делает |
+|-----|------------|
+| `lint` | yamllint compose, hadolint Dockerfile, shellcheck, helm lint + kubeconform |
+| `basic` | compose smoke test, Python API test, push образов в Docker Hub с `latest` и `${GITHUB_SHA::7}` |
+| `deploy` | deploy в k3s через `helm upgrade --install` с `--rollback-on-failure` |
+
+Используемые GitHub Secrets: `DOCKER_USERNAME`, `DOCKER_PASSWORD`, `KUBE_CONFIG_DATA`, `FILE_GALLERY_SECRETS`.
+
+## Полезные команды
+
+```bash
+# Compose
+docker compose ps
+docker compose logs -f backend
+docker compose down
+
+# Helm / k3s
+kubectl get pods,svc,pvc -n file-gallery
+kubectl logs -n file-gallery deploy/backend --tail=100
+kubectl describe pod -n file-gallery <pod-name>
+```
+
+## Примечания
+
+- `PROJECT-gallery.md` содержит исходное учебное ТЗ/легенду проекта.
+- Для MinIO в браузере важен корректный `MINIO_PUBLIC_URL`; внутренний адрес `minio:9000` из docker/k8s-сети с браузера недоступен.
+- Перед push проверяй, что реальные `values-secrets.yaml` и `.env` не попадают в git.
