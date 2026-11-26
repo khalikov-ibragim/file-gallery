@@ -5,7 +5,7 @@ deployments:
     replicas: 2
     image:
       repository: glimpl/file-gallery-backend
-      tag: latest
+      tag: 17be511
     imagePullPolicy: IfNotPresent
     strategy:
       type: RollingUpdate
@@ -44,7 +44,7 @@ deployments:
     replicas: 1
     image:
       repository: glimpl/file-gallery-frontend
-      tag: latest
+      tag: 5f720ae
     port: 80
     env:
       BACKEND_HOST: file-gallery-backend

@@ -1,4 +1,4 @@
-{{- $fullName := include "file-gallery.fullname" . -}}
+{{- $fullName := include "file-gallery.fullname" . -}} # устанавливаем переменную с fullname
 {{- range .Values.deployments }}
 {{- if .service.enabled }}
 ---
